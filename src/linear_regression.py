@@ -21,7 +21,7 @@ class LinearRegression:
         y: np.ndarray,
         optimizer: Optimizer = None,
         epochs: int = 1000,
-        batch_size: int = 32,
+        batch_size: int = 8,
     ):
         """
         Params:
@@ -39,6 +39,7 @@ class LinearRegression:
         self.X = X
         self.y = y
 
+        bs = X.shape[0]
         M, N = X.shape[1], y.shape[1]
         self.theta = np.random.randn(M, N)
         self.bias = np.zeros(N)
@@ -47,16 +48,22 @@ class LinearRegression:
 
         with tqdm(total=epochs) as pbar:
             for i in tqdm(range(epochs)):
-                pred = X @ self.theta.T + self.bias
+                # select mini batch
+                idx = np.random.choice(bs, batch_size)
+                X_batch = X[idx]
+                y_batch = y[idx]
+
+                pred = X_batch @ self.theta.T + self.bias
 
                 # calculate loss
-                loss = np.mean((pred - y) ** 2)
+                loss = np.mean((pred - y_batch) ** 2)
+                # loss = np.mean((pred - y) ** 2)
                 self.losses.append(loss.item())
                 pbar.set_postfix(loss=loss.item())
 
                 # calculate gradients
-                error = pred - y
-                dtheta = 2 / (N * M) * error.T @ X
+                error = pred - y_batch
+                dtheta = 2 / (N * M) * error.T @ X_batch
                 dbias = 2 / (N * M) * error.sum(axis=0)
 
                 # optimizer step
@@ -87,7 +94,9 @@ class LinearRegression:
         # Generate a range of values for theta and bias
         theta_span = max(self._thetas) - min(self._thetas)
         bias_span = max(self._biases) - min(self._biases)
-        theta_range = np.linspace(min(self._thetas) - 1, self._thetas[-1] + theta_span + 1, 100)
+        theta_range = np.linspace(
+            min(self._thetas) - 1, self._thetas[-1] + theta_span + 1, 100
+        )
         bias_range = np.linspace(
             min(self._biases) - 1, self._biases[-1] + bias_span + 1, 100
         )
