@@ -72,7 +72,55 @@ class RMSProp(Optimizer):
 
 
 class Adam(Optimizer):
-    pass
+    """
+    Adam Optimizer from https://arxiv.org/abs/1412.6980
+
+    Combines momentum with RMSProp
+    """
+
+    def __init__(
+        self, lr: float = 3e-4, betas: tuple[float] = (0.9, 0.999), eps: float = 1e-08
+    ):
+        super().__init__(lr)
+        self.betas = betas
+        self.eps = eps
+        self.t = 0
+
+    def init_parameters(self, parameters: list[np.ndarray]):
+        super().init_parameters(parameters)
+
+        # 1st and 2nd moment estimates
+        self.s = [np.zeros_like(parameter) for parameter in parameters]
+        self.r = [np.zeros_like(parameter) for parameter in parameters]
+
+    def _step(self, gradients: list[np.ndarray]):
+        beta1, beta2 = self.betas
+
+        self.t += 1
+
+        # update moment estimates (exponential moving averages)
+        self.s = [
+            beta1 * self.s[i] + (1 - beta1) * gradient
+            for i, gradient in enumerate(gradients)
+        ]
+        self.r = [
+            beta2 * self.r[i] + (1 - beta2) * gradient**2
+            for i, gradient in enumerate(gradients)
+        ]
+
+        # bias correction
+        s_hats = [s / (1 - beta1**self.t) for s in self.s]
+        r_hats = [r / (1 - beta2**self.t) for r in self.r]
+
+        deltas = [
+            -self.lr * s_hat / (r_hat**0.5 + self.eps)
+            for s_hat, r_hat in zip(s_hats, r_hats)
+        ]
+
+        for i, param in enumerate(self.parameters):
+            self.parameters[i] = param + deltas[i]
+
+        return self.parameters
 
 
 class AdamW(Optimizer):

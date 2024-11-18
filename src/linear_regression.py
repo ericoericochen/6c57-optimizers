@@ -57,7 +57,6 @@ class LinearRegression:
 
                 # calculate loss
                 loss = np.mean((pred - y_batch) ** 2)
-                # loss = np.mean((pred - y) ** 2)
                 self.losses.append(loss.item())
                 pbar.set_postfix(loss=loss.item())
 
