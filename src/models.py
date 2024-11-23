@@ -52,7 +52,7 @@ class Model(ABC):
 
         bs = X.shape[0]
         M, N = X.shape[1], y.shape[1]
-        self.theta = np.random.randn(M, N)
+        self.theta = np.random.randn(N, M)
         self.bias = np.zeros(N)
 
         optimizer.init_parameters([self.theta, self.bias])
