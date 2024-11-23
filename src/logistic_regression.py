@@ -1,8 +1,10 @@
 import numpy as np
+
 from .optimizers import Optimizer
+from .models import Model
 
 
-class LogisticRegression:
+class LogisticRegression(Model):
     def __init__(self):
         self._fitted = False
 
